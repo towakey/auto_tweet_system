@@ -30,26 +30,26 @@ class TwitterClient
         # 自動ツイートのチェックを開始
         # 現在時刻を取得
         currnet_time = self.get_current_time_str
-        dir_path = "./tweet/"+currnet_time
-        # dir_path = "./tweet/"+"202009222224"
-        if File.directory?(dir_path)
-            json = File.open(dir_path + "/tweet.json") do |file|
-                JSON.load(file)
-            end
-            p json["tweet"]
-            imgs = json["img"].map{ |img| open(dir_path + "/" + img)}
-            if imgs.length === 0 then
-                # 文章のみ
-                p "not img"
-                self.tweet(json["tweet"])
+
+        tweet = File.open("tweet.json") do |file|
+            JSON.load(file)
+        end
+        if tweet.has_key?(currnet_time) then
+            # 画像の有無で処理を分岐
+            if tweet[currnet_time].has_key?("img")
+                # p "img true"
+                img_dir = "./tweet/" + tweet[currnet_time]["img"] + "/*"
+                imgs = Dir.glob(img_dir).map{ |img| open(img) }
+                # p imgs
+                self.tweet_with_media(tweet[currnet_time]["tweet"], imgs)
             else
-                # 画像含む
-                p "img"
-                self.tweet_with_media(json["tweet"],imgs)
+                # p "img False"
+                self.tweet(tweet[currnet_time]["tweet"])
             end
         else
-            p "False"
+            p "tweet.json not found"
         end
+
     end
 end
 
